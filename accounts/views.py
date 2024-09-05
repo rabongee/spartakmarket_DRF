@@ -1,8 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
 from .models import User
 from .serializers import UserSerializer
@@ -42,3 +43,15 @@ class LoginView(APIView):
         res_data['refresh_token'] = str(refresh)
         res_data['access_token'] = str(refresh.access_token)
         return Response(res_data)
+
+
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, username):
+        user = get_object_or_404(User, username=username)
+        if user == request.user:
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
+        else:
+            return Response({"message": "로그인한 유저와 다릅니다."})
