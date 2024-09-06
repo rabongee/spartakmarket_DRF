@@ -13,7 +13,6 @@ from .validators import validate_signup
 class SingupView(APIView):
     def post(self, request):
         is_valid, error_message = validate_signup(request.data)
-        print(is_valid, error_message)
         if not is_valid:
             return Response({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
 
