@@ -25,6 +25,8 @@ class SingupView(APIView):
             email=request.data.get("email"),
             nickname=request.data.get("nickname"),
             birthday=request.data.get("birthday"),
+            gender=request.data.get("gender"),
+            self_introduction=request.data.get("self_introduction"),
         )
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -38,7 +40,6 @@ class LoginView(APIView):
             return Response({"error": "아이디나 비밀번호가 틀립니다."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = UserSerializer(user)
         res_data = serializer.data
-
         refresh = RefreshToken.for_user(user)
         res_data['refresh_token'] = str(refresh)
         res_data['access_token'] = str(refresh.access_token)
