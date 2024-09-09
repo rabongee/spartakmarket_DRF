@@ -1,4 +1,6 @@
 from django.core.validators import validate_email
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from datetime import datetime
 from .models import User
 
@@ -83,3 +85,24 @@ def validate_update_user(user_data):
             error_messages.append({"birthday": "생일 형식은 YYYY-MM-DD여야 합니다."})
 
     return not bool(error_messages), error_messages
+
+
+def validate_change_password(password_data, user):
+    old_password = password_data.get("old_password")
+    new_password = password_data.get("new_password")
+
+    if not old_password or not new_password:
+        return False, "기존 패스워드와 새 패스워드를 모두 입력해야 합니다."
+
+    if not user.check_password(old_password):
+        return False, "기존 패스워드가 올바르지 않습니다."
+
+    if old_password == new_password:
+        return False, "새 패스워드는 기존 패스워드와 달라야 합니다."
+
+    try:
+        validate_password(new_password, user=user)
+    except ValidationError:
+        return False, "새 패스워드가 형식에 맞지 않습니다."
+
+    return True, None

@@ -8,7 +8,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate
 from .models import User
 from .serializers import UserSerializer
-from .validators import validate_signup, validate_update_user
+from .validators import (
+    validate_signup, validate_update_user, validate_change_password)
 
 
 class AccountsView(APIView):
@@ -76,6 +77,21 @@ class LogoutView(APIView):
 
         refresh_token.blacklist()
         return Response({"message": "성공적으로 로그아웃 되었습니다."})
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        user = request.user
+        is_valid, error_message = validate_change_password(request.data, user)
+        if not is_valid:
+            return Response({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
+
+        new_password = request.data.get('new_password')
+        user.set_password(new_password)
+        user.save()
+        return Response({"message": "패스워드가 변경에 성공했습니다."})
 
 
 class UserProfileView(APIView):
