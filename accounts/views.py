@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
 from .models import User
@@ -28,7 +29,11 @@ class SingupView(APIView):
             self_introduction=request.data.get("self_introduction"),
         )
         serializer = UserSerializer(user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        res_data = serializer.data
+        refresh = RefreshToken.for_user(user)
+        res_data['refresh_token'] = str(refresh)
+        res_data['access_token'] = str(refresh.access_token)
+        return Response(res_data, status=status.HTTP_201_CREATED)
 
 
 class LoginView(APIView):
@@ -43,6 +48,20 @@ class LoginView(APIView):
         res_data['refresh_token'] = str(refresh)
         res_data['access_token'] = str(refresh.access_token)
         return Response(res_data)
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        refresh_token_str = request.data.get("refresh_token")
+        try:
+            refresh_token = RefreshToken(refresh_token_str)
+        except TokenError as e:
+            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        refresh_token.blacklist()
+        return Response({"message":"성공적으로 로그아웃 되었습니다."})
 
 
 class UserProfileView(APIView):
