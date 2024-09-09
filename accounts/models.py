@@ -10,3 +10,7 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    def soft_delete(self):
+        self.is_active = False
+        self.save()

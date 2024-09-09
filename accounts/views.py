@@ -4,14 +4,19 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate
 from .models import User
 from .serializers import UserSerializer
 from .validators import validate_signup
 
 
-class SingupView(APIView):
+class AccountsView(APIView):
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
     def post(self, request):
         is_valid, error_message = validate_signup(request.data)
         if not is_valid:
@@ -34,6 +39,15 @@ class SingupView(APIView):
         res_data['refresh_token'] = str(refresh)
         res_data['access_token'] = str(refresh.access_token)
         return Response(res_data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request):
+        password = request.data.get('password')
+        user = request.user
+        if not user.check_password(password):
+            return Response({"error": "비밀번호가 일치하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.soft_delete()
+        return Response({"message": "회원탈퇴에 성공했습니다."})
 
 
 class LoginView(APIView):
@@ -61,7 +75,7 @@ class LogoutView(APIView):
             return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         refresh_token.blacklist()
-        return Response({"message":"성공적으로 로그아웃 되었습니다."})
+        return Response({"message": "성공적으로 로그아웃 되었습니다."})
 
 
 class UserProfileView(APIView):
