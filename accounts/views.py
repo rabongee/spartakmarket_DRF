@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate
 from .models import User
 from .serializers import UserSerializer
-from .validators import validate_signup
+from .validators import validate_signup, validate_update_user
 
 
 class AccountsView(APIView):
@@ -88,3 +88,17 @@ class UserProfileView(APIView):
             return Response(serializer.data)
         else:
             return Response({"message": "로그인한 유저와 다릅니다."})
+
+    def put(self, request, username):
+        user = get_object_or_404(User, username=username)
+        if user == request.user:
+            is_valid, error_message = validate_update_user(request.data)
+            if not is_valid:
+                return Response({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
+            serializer = UserSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+            return Response(serializer.data)
+
+        else:
+            return Response({"message": "수정 권한이 없습니다."}, status=status.HTTP_401_UNAUTHORIZED)
