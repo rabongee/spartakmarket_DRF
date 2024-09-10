@@ -103,7 +103,7 @@ class UserProfileView(APIView):
             serializer = UserSerializer(user)
             return Response(serializer.data)
         else:
-            return Response({"message": "로그인한 유저와 다릅니다."})
+            return Response({"message": "로그인한 유저와 다릅니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
     def put(self, request, username):
         user = get_object_or_404(User, username=username)

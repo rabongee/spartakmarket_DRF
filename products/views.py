@@ -3,21 +3,24 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.generics import ListAPIView
 from .models import Product
 from .serializers import ProductSerializer
 from .validators import validate_create
 
 
-class ProductListAPIView(APIView):
+class ProductListAPIView(ListAPIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return [AllowAny()]
         return [IsAuthenticated()]
 
-    def get(self, request):
-        products = Product.objects.all()
-        serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+    pagination_class = PageNumberPagination
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        return Product.objects.all()
 
     def post(self, request):
         is_valid, error_message = validate_create(request.data)
