@@ -12,6 +12,7 @@ Django를 이용해서 개발했던 spartamarket의 백엔드 부분을 DRF 형�
 - Framework : Django 4.2, Django Rest Framework
 
 ## ERD
+![ER다이어그램](https://github.com/rabongee/spartamarket_DRF/blob/dev/DRF_ER%EB%8B%A4%EC%9D%B4%EC%96%B4%EA%B7%B8%EB%9E%A8.drawio.png)
 
 ## API 명세
 |기능|method type|Endpoint|
