@@ -20,7 +20,7 @@ class ProductListAPIView(ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.all()
+        return Product.objects.all().order_by("-pk")
 
     def post(self, request):
         is_valid, error_message = validate_create(request.data)
